@@ -1,9 +1,33 @@
 import express from 'express';
+import dotenv from 'dotenv';
+import cookieParser from 'cookie-parser';
+import cors from 'cors'
+
+import UserRouter from './routes/user.routes.js';
+dotenv.config();
+
 const app = express();
 
-const port = 4000
+
+app.use(express.json());
+app.use(cors({
+    origin:"http://localhost:5174"
+}))
+app.use(cookieParser());
+app.use(express.urlencoded({ extended:true }))
+
+//import the routes
+app.use("/api/v1/users",UserRouter)
+
+
+
+
+const port = process.env.PORT || 2000
+
+
 app.get("/test",(req,res)=>{
-    res.send("this is a testing route")
+    res.send("just for sending purpose")
+    console.log(req.body);
 })
 
 

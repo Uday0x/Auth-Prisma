@@ -1,4 +1,17 @@
+# Node modules
 node_modules/
-.env
-*.log
 
+# Prisma generated stuff
+generated/
+prisma/dev.db
+
+# Environment variables
+.env
+
+# Logs
+*.log
+npm-debug.log*
+
+# Optional OS junk
+.DS_Store
+Thumbs.db
