@@ -1,6 +1,7 @@
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
+import nodemailer from "nodemailer";
 
 const prisma = new PrismaClient();
 
@@ -23,9 +24,15 @@ const RegisterUSer = async (req, res) => {
 
     console.log("going inside try block");
     try {
-        const exsitingUser = await prisma.user.findUnique({
-            where: { email }
+        const exsitingUser = await prisma.user.findFirst({
+            where: {
+                OR: [
+                    { email },
+                    { phone }
+                ]
+            } //since both email and phone are given unique in schema we ahve to use it 
         })
+        // console.log(exsitingUser);
 
         if (exsitingUser) {
             return res.status(404).json({
@@ -36,7 +43,7 @@ const RegisterUSer = async (req, res) => {
 
         const hashedPassword = await bcrypt.hash(password, 10);
         const verificationToken = crypto.randomBytes(32).toString('hex');
-
+        console.log("checked existing user")
 
         const user = await prisma.user.create({
             data: {
@@ -49,14 +56,37 @@ const RegisterUSer = async (req, res) => {
         })
 
 
-        console.log(user);
-        return res.status(201).json({
-            message: "User registered successfully!",
-            success: true,
-            user
+        console.log(user.email);
+
+
+
+        //sending the email to verify
+        const transporter = nodemailer.createTransport({
+            host: process.env.SMTP_HOST,
+            port: parseInt(process.env.SMTP_PORT),
+            secure: false,
+            auth: {
+                user: process.env.SMTP_USER,
+                pass: process.env.SMTP_PASS
+            },
         });
 
+        const Mailoption = {
+            from: process.env.MAIL_FROM,
+            to: user.email,
+            subject: "Verify your email",
+            text: `Please click the following link:
+            ${process.env.Base_url}/api/v1/users/verify/${verificationToken}`
+        };
 
+
+        await transporter.sendMail(Mailoption);
+
+
+        return res.status(200).json({
+            message: "USer registered sucessfully and mail sent for verification",
+            success: true
+        })
     } catch (error) {
         return res.status(404).json({
             message: "something is wrong plz try again",
