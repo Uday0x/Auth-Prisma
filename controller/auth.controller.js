@@ -2,7 +2,7 @@ import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
 import nodemailer from "nodemailer";
-
+import jwt from "jsonwebtoken";
 const prisma = new PrismaClient();
 
 const RegisterUSer = async (req, res) => {
@@ -97,11 +97,11 @@ const RegisterUSer = async (req, res) => {
 
 
 
-    //get the token from params
-    ////search the user based on token 
-    //if found verify or else not verfy 
-    //remove the token 
-   const VerifyUser = async (req, res) => {
+//get the token from params
+////search the user based on token 
+//if found verify or else not verfy 
+//remove the token 
+const VerifyUser = async (req, res) => {
     try {
         const { verificationToken } = req.params;
 
@@ -147,6 +147,66 @@ const RegisterUSer = async (req, res) => {
             success: false
         });
     }
+}
+
+
+const loginUser = async (req, res) => {
+   try {
+     //get the data username passowORD ,PHONE
+     //find the user
+ 
+ 
+     const { email, password } = req.body;
+     if (!email || !password) {
+         res.status(440).json({
+             message: "Both email and passowrd are required",
+             success: false
+         })
+     }
+ 
+     const user = await prisma.user.findFirst({
+         where: { email }
+     })
+     console.log(user);
+ 
+ 
+     if (!user || !(await bcrypt.compare(password, user.password))) {
+         return res.status(401).json({ message: "Invalid credentials" });
+     }
+ 
+    const token = jwt.sign(
+       { id: user._id, role: user.role },//user kiase acces ho rha ??scroll up alil idhar hi login mein hi access hoga uska
+       process.env.JWt_SECRET,
+       {
+         expiresIn: "24h"
+       }
+     )
+ 
+ 
+     const cookieOptions = {
+         http:true,
+         secure:true,
+         maxAge:24*60*60*1000
+     }
+ 
+ 
+     res.cookie("token",token,cookieOptions)
+ 
+     return res.status(200).json({
+       sucess: true,
+       message: "login succcesful",
+       user: {
+         id: user._id,
+         name: user.name,
+         role: user.role,
+       }
+     })
+   } catch (error) {
+        return res.status(200).json({
+            message:"something in login error",
+            success:false
+        })
    }
 
-export { RegisterUSer,VerifyUser }
+}
+export { RegisterUSer, VerifyUser, loginUser }
