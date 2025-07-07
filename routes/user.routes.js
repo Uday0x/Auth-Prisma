@@ -1,11 +1,12 @@
 import express from "express";
-import { RegisterUSer } from "../controller/auth.controller.js";
+import { RegisterUSer, VerifyUser } from "../controller/auth.controller.js";
 
 
 const UserRouter = express.Router();
 
 
 UserRouter.get("/register",RegisterUSer)
+UserRouter.get("/Verify/:verificationToken",VerifyUser)
 
 
 

@@ -95,4 +95,58 @@ const RegisterUSer = async (req, res) => {
     }
 }
 
-export { RegisterUSer }
+
+
+    //get the token from params
+    ////search the user based on token 
+    //if found verify or else not verfy 
+    //remove the token 
+   const VerifyUser = async (req, res) => {
+    try {
+        const { verificationToken } = req.params;
+
+        if (!verificationToken) {
+            return res.status(400).json({
+                message: "Please provide a valid token",
+                success: false,
+            });
+        }
+
+        const user = await prisma.user.findFirst({
+            where: {
+                verificationToken
+            }
+        });
+
+        if (!user) {
+            return res.status(404).json({
+                message: "User not found",
+                success: false
+            });
+        }
+
+        await prisma.user.update({
+            where: {
+                id: user.id
+            },
+            data: {
+                isVerified: true,
+                verificationToken: null
+            }
+        });
+
+        return res.status(200).json({
+            message: "User verified successfully",
+            success: true
+        });
+
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({
+            message: "Something went wrong during verification",
+            success: false
+        });
+    }
+   }
+
+export { RegisterUSer,VerifyUser }
