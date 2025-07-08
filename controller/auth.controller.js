@@ -15,7 +15,7 @@ const RegisterUSer = async (req, res) => {
 
 
     const { email, password, phone, name } = req.body;
-    console.log(req)
+    console.log(req.body)
     if (!email || !password || !phone || !name) {
         return res.status(400).json({
             message: "plz give valid credentials"
@@ -151,19 +151,20 @@ const VerifyUser = async (req, res) => {
 
 
 const loginUser = async (req, res) => {
-   try {
-     //get the data username passowORD ,PHONE
-     //find the user
- 
- 
-     const { email, password } = req.body;
+     
+     const {email, password} = req.body;
+    
      if (!email || !password) {
          res.status(440).json({
              message: "Both email and passowrd are required",
              success: false
          })
      }
- 
+     
+   try {
+     //get the data username passowORD ,PHONE
+     //find the user
+     
      const user = await prisma.user.findFirst({
          where: { email }
      })
@@ -175,7 +176,7 @@ const loginUser = async (req, res) => {
      }
  
     const token = jwt.sign(
-       { id: user._id, role: user.role },//user kiase acces ho rha ??scroll up alil idhar hi login mein hi access hoga uska
+       { id: user.id, role: user.role },//user kiase acces ho rha ??scroll up alil idhar hi login mein hi access hoga uska
        process.env.JWt_SECRET,
        {
          expiresIn: "24h"
@@ -196,7 +197,7 @@ const loginUser = async (req, res) => {
        sucess: true,
        message: "login succcesful",
        user: {
-         id: user._id,
+         id: user.id,
          name: user.name,
          role: user.role,
        }

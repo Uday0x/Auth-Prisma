@@ -7,7 +7,7 @@ const UserRouter = express.Router();
 
 UserRouter.get("/register",RegisterUSer)
 UserRouter.get("/Verify/:verificationToken",VerifyUser)
-UserRouter.get("/login",loginUser)
+UserRouter.post("/login",loginUser)
 
 
 

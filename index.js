@@ -9,12 +9,18 @@ dotenv.config();
 const app = express();
 
 
-app.use(express.json());
-app.use(cors({
-    origin:"http://localhost:5174"
-}))
+
+app.use(
+  cors({
+    origin: process.env.Base_url,
+    credentials: true,
+    methods: ["GET", "POST", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
 app.use(cookieParser());
 app.use(express.urlencoded({ extended:true }))
+app.use(express.json())
 
 //import the routes
 app.use("/api/v1/users",UserRouter)
@@ -29,6 +35,7 @@ app.get("/test",(req,res)=>{
     res.send("just for sending purpose")
     console.log(req.body);
 })
+
 
 
 app.listen(port ,()=>{
