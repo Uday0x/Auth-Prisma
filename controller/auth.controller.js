@@ -3,6 +3,7 @@ import bcrypt from "bcryptjs";
 import crypto from "crypto";
 import nodemailer from "nodemailer";
 import jwt from "jsonwebtoken";
+
 const prisma = new PrismaClient();
 
 const RegisterUSer = async (req, res) => {
@@ -279,4 +280,74 @@ const Logout = async (req, res) => {
         })
     }
 }
-export { RegisterUSer, VerifyUser, loginUser, getMe,Logout }
+
+const forgotPassowrd = async (req, res) => {
+    //get the deatils 
+    //find based on unique element 
+    //create a token //using crypto // not jwt
+    //update the token to the databse
+    //sen dmail to the user
+
+
+    try {
+        const { email } = req.body;
+        if (!email) {
+            return res.status(200).json({
+                message: "please give valid email"
+            })
+        }
+       const user = await prisma.user.findFirst({
+            where: {
+                email
+            }
+        })
+        console.log("reache dtill here?")
+
+        if (!user) {
+            return res.status(200).json({
+                message: "no user based on this token"
+            })
+        }
+
+        
+        //creating the token 
+        const token = crypto.randomBytes(32).toString("hex")
+
+        user.passwordResetToken = token;
+        user.passwordResetExpiry = Date.now() + 10 * 60 * 1000;
+
+
+        //sendimg the token to user =>sending the mail
+        const transporter = nodemailer.createTransport({
+            host: process.env.SMTP_HOST,
+            port: parseInt(process.env.SMTP_PORT),
+            secure: false,
+            auth: {
+                user: process.env.SMTP_USER,
+                pass: process.env.SMTP_PASS
+            },
+        });
+
+        const Mailoption = {
+            from: process.env.MAIL_FROM,
+            to: user.email,
+            subject: "Reset passowrd token",
+            text: `Please click the following link:
+                ${process.env.Base_url}/api/v1/users/resetPassword/${token}`
+        };
+
+
+        await transporter.sendMail(Mailoption);
+
+
+        return res.status(300).json({
+            message: "reset passowrd token set perfectly"
+        })
+    } catch (error) {
+        return res.status(400).json({
+            message: "something wrong in forgot passoword",
+            success: false
+        })
+    }
+}
+export { RegisterUSer, VerifyUser, loginUser, getMe, Logout, forgotPassowrd }
