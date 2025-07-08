@@ -177,7 +177,7 @@ const loginUser = async (req, res) => {
  
     const token = jwt.sign(
        { id: user.id, role: user.role },//user kiase acces ho rha ??scroll up alil idhar hi login mein hi access hoga uska
-       process.env.JWt_SECRET,
+       process.env.JWT_SECRET,
        {
          expiresIn: "24h"
        }
@@ -210,4 +210,9 @@ const loginUser = async (req, res) => {
    }
 
 }
-export { RegisterUSer, VerifyUser, loginUser }
+
+
+const getMe = async (req,res)=>{
+    console.log(req.user.id)
+}
+export { RegisterUSer, VerifyUser, loginUser, getMe }
