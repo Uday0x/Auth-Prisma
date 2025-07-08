@@ -151,99 +151,132 @@ const VerifyUser = async (req, res) => {
 
 
 const loginUser = async (req, res) => {
-     
-     const {email, password} = req.body;
-    
-     if (!email || !password) {
-         res.status(440).json({
-             message: "Both email and passowrd are required",
-             success: false
-         })
-     }
-     
-   try {
-     //get the data username passowORD ,PHONE
-     //find the user
-     
-     const user = await prisma.user.findFirst({
-         where: { email }
-     })
-     console.log(user);
- 
- 
-     if (!user || !(await bcrypt.compare(password, user.password))) {
-         return res.status(401).json({ message: "Invalid credentials" });
-     }
- 
-    const token = jwt.sign(
-       { id: user.id, role: user.role },//user kiase acces ho rha ??scroll up alil idhar hi login mein hi access hoga uska
-       process.env.JWT_SECRET,
-       {
-         expiresIn: "24h"
-       }
-     )
- 
- 
-     const cookieOptions = {
-         http:true,
-         secure:true,
-         maxAge:24*60*60*1000
-     }
- 
- 
-     res.cookie("token",token,cookieOptions)
- 
-     return res.status(200).json({
-       sucess: true,
-       message: "login succcesful",
-       user: {
-         id: user.id,
-         name: user.name,
-         role: user.role,
-       }
-     })
-   } catch (error) {
-        return res.status(200).json({
-            message:"something in login error",
-            success:false
+
+    const { email, password } = req.body;
+
+    if (!email || !password) {
+        res.status(440).json({
+            message: "Both email and passowrd are required",
+            success: false
         })
-   }
+    }
+
+    try {
+        //get the data username passowORD ,PHONE
+        //find the user
+
+        const user = await prisma.user.findFirst({
+            where: { email }
+        })
+        console.log(user);
+
+
+        if (!user || !(await bcrypt.compare(password, user.password))) {
+            return res.status(401).json({ message: "Invalid credentials" });
+        }
+
+        const token = jwt.sign(
+            { id: user.id, role: user.role },//user kiase acces ho rha ??scroll up alil idhar hi login mein hi access hoga uska
+            process.env.JWT_SECRET,
+            {
+                expiresIn: "24h"
+            }
+        )
+
+
+        const cookieOptions = {
+            http: true,
+            secure: true,
+            maxAge: 24 * 60 * 60 * 1000
+        }
+
+
+        res.cookie("token", token, cookieOptions)
+
+        return res.status(200).json({
+            sucess: true,
+            message: "login succcesful",
+            user: {
+                id: user.id,
+                name: user.name,
+                role: user.role,
+            }
+        })
+    } catch (error) {
+        return res.status(200).json({
+            message: "something in login error",
+            success: false
+        })
+    }
 
 }
 
 
-const getMe = async (req,res)=>{
+const getMe = async (req, res) => {
     console.log(req.user.id)
 
     try {
         const user = await prisma.user.findFirst({
-            where: { 
+            where: {
                 id: req.user.id,
             },
-            select:{
-                id:true,
-                name:true,
-                email:true,
-                role:true
+            select: {
+                id: true,
+                name: true,
+                email: true,
+                role: true
             }
         })
         console.log('reaching here?')
-        if(!user){
+        if (!user) {
             return res.status(400).json({
-                message:"no user found"
+                message: "no user found"
             })
         }
 
         return res.status(400).json({
-            data:user,
-            message:"Profile found successfully",
-            success:true
+            data: user,
+            message: "Profile found successfully",
+            success: true
         })
     } catch (error) {
         return res.status(200).json({
-            message:"Somethingw wnet wrong in finding the user",
-            success:false,
+            message: "Somethingw wnet wrong in finding the user",
+            success: false,
         })
     }
 }
-export { RegisterUSer, VerifyUser, loginUser, getMe }
+
+const Logout = async (req, res) => {
+    try {
+
+        const { email } = req.body //since email is unique
+        //finding the user based on email
+        const user = await prisma.user.findFirst({
+            where: {
+                email
+            }
+        })
+
+        if (!user) {
+            return res.status(300).json({
+                message: "user not found",
+                success: false
+            })
+        }
+
+        res.cookie('token', "", {})
+
+        return res.status(200).json({
+            message: "User logged out successfully",
+            success: false
+        })
+
+    } catch (error) {
+        return res.status(200).json({
+            message: "problem in logging the user out",
+            success: false
+        })
+    }
+}
+export { RegisterUSer, VerifyUser, loginUser, getMe,Logout }
