@@ -214,5 +214,36 @@ const loginUser = async (req, res) => {
 
 const getMe = async (req,res)=>{
     console.log(req.user.id)
+
+    try {
+        const user = await prisma.user.findFirst({
+            where: { 
+                id: req.user.id,
+            },
+            select:{
+                id:true,
+                name:true,
+                email:true,
+                role:true
+            }
+        })
+        console.log('reaching here?')
+        if(!user){
+            return res.status(400).json({
+                message:"no user found"
+            })
+        }
+
+        return res.status(400).json({
+            data:user,
+            message:"Profile found successfully",
+            success:true
+        })
+    } catch (error) {
+        return res.status(200).json({
+            message:"Somethingw wnet wrong in finding the user",
+            success:false,
+        })
+    }
 }
 export { RegisterUSer, VerifyUser, loginUser, getMe }
